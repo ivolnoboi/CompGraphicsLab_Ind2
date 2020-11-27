@@ -12,9 +12,21 @@ namespace Individual2
 {
     public partial class Form1 : Form
     {
+        Bitmap image;
         public Form1()
         {
             InitializeComponent();
+            image = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            List<Sphere> scene = new List<Sphere>();
+            scene.Add(new Sphere(new Point3D(0, -1, 3), 1, Color.Red));
+            scene.Add(new Sphere(new Point3D(2, 0, 4), 1, Color.Blue));
+            scene.Add(new Sphere(new Point3D(-2, 0, 4), 1, Color.Green));
+            //scene.Add(new Sphere(new Point3D(0, 0, 8), 1, Color.Red));
+            pictureBox1.Image = RayTracing.CreateColorScene(pictureBox1.Width, pictureBox1.Height, scene);
         }
     }
 }
