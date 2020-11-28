@@ -24,5 +24,24 @@ namespace Individual2
         {
             return new Point3D(point1.X - point2.X, point1.Y - point2.Y, point1.Z - point2.Z);
         }
+        static public Point3D operator *(float k, Point3D p)
+        {
+            return new Point3D(p.X * k, p.Y * k, p.Z * k);
+        }
+
+        static public Point3D operator *(Point3D p, float k)
+        {
+            return new Point3D(p.X * k, p.Y * k, p.Z * k);
+        }
+
+        static public Point3D operator +(Point3D point1, Point3D point2)
+        {
+            return new Point3D(point1.X + point2.X, point1.Y + point2.Y, point1.Z + point2.Z);
+        }
+
+        static public Point3D operator /(Point3D point, float k)
+        {
+            return new Point3D(point.X / k, point.Y / k, point.Z / k);
+        }
     }
 }

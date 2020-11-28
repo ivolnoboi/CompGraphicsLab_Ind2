@@ -12,6 +12,12 @@ namespace Individual2
         // Скалярное произведение
         public static float ScalarProduct(Point3D vector1, Point3D vector2) => vector1.X * vector2.X + vector1.Y * vector2.Y + vector1.Z * vector2.Z;
 
+        // Длина вектора
+        public static float Lenght(Point3D vec)
+        {
+            return (float)Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+        }
+
         // Получить координаты на Bitmap
         public static (int, int) GetCoordinatesBitmap(int x, int y, int width, int height)
         {
@@ -19,7 +25,7 @@ namespace Individual2
         }
 
         /// Заполняет буфер цвета
-        public static Bitmap CreateColorScene(int width, int height, List<Sphere> scene)
+        public static Bitmap CreateColorScene(int width, int height, List<Sphere> scene, List<Light> lights)
         {
             Bitmap colors = new Bitmap(width, height);
             Camera obzor = new Camera(0, 0, 0);
@@ -27,7 +33,7 @@ namespace Individual2
                 for (int y = -height / 2 + 1; y < height / 2; y++)
                 {
                     Point3D D = CanvasToViewport(x, y, width, height);
-                    Color color = TraceRay(obzor, D, 1, float.MaxValue, scene);
+                    Color color = TraceRay(obzor, D, 1, float.MaxValue, scene, lights);
                     (int, int) coords = GetCoordinatesBitmap(x, y, width, height);
                     colors.SetPixel(coords.Item1, coords.Item2, color);
                 }
@@ -40,10 +46,35 @@ namespace Individual2
             return new Point3D((float)(x * 1.0 / width), (float)(y * 1.0 / height), 1);
         }
 
+        // P - точка сцены, N - нормаль к поверхности
+        // Высчитывает освещённость точки
+        public static float ComputeLighting(Point3D P, Point3D N, List<Light> lights)
+        {
+            float i = 0.0f;
+            foreach (var light in lights)
+            {
+                if (light.Type == Type.Ambient)
+                {
+                    i += light.Intensity;
+                }
+                else
+                {
+                    Point3D L;
+                    if (light.Type == Type.Point)
+                        L = light.Position - P; // вектор освещения
+                    else L = light.Direction;
+                    float scalar = ScalarProduct(N, L);
+                    if (scalar > 0)
+                        i += (float)(light.Intensity * scalar / (Lenght(N) * Lenght(L)));
+                }
+            }
+            return i;
+        }
+
         // O - исходня точка луча, D - координата окна просмотра (лучи пускаются из O в D)
         // Вычисляет пересечение луча с каждой сферой, и возвращает цвет сферы в ближайшей точке пересечения, 
         // которая находится в требуемом интервале t (от 1 до бесконечности)
-        public static Color TraceRay(Camera O, Point3D D, float t_min, float t_max, List<Sphere> scene)
+        public static Color TraceRay(Camera O, Point3D D, float t_min, float t_max, List<Sphere> scene, List<Light> lights)
         {
             float closest_t = float.MaxValue;
             Sphere closest_sphere = null;
@@ -65,7 +96,15 @@ namespace Individual2
             }
             if (closest_sphere == null)
                 return Color.White;
-            else return closest_sphere.Color;
+            else
+            {
+                Point3D P = O.Position + closest_t * D; // вычисление пересечения
+                Point3D N = P - closest_sphere.Center; // вычисление нормали сферы в точке пересечения
+                N = N/Lenght(N); // нормализуем вектор нормали
+                float lightning = ComputeLighting(P, N, lights);
+                Color color = closest_sphere.Color;
+                return Color.FromArgb((int)(color.R * lightning), (int)(color.G * lightning), (int)(color.B * lightning));
+            }
         }
 
         // Находит параметр t для нахождения точки пересечения со сферой
