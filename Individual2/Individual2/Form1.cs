@@ -23,10 +23,10 @@ namespace Individual2
         {
             List<Sphere> scene = new List<Sphere>();
             List<Light> lights = new List<Light>();
-            scene.Add(new Sphere(new Point3D(0, -1, 3), 1, Color.Red, 500));
-            scene.Add(new Sphere(new Point3D(2, 0, 4), 1, Color.Blue, 500));
-            scene.Add(new Sphere(new Point3D(-2, 0, 4), 1, Color.Green, 10));
-            scene.Add(new Sphere(new Point3D(0, -5001, 0), 5000, Color.Yellow, 1000));
+            scene.Add(new Sphere(new Point3D(0, -1, 3), 1, Color.Red, 500, 0.2f));
+            scene.Add(new Sphere(new Point3D(2, 0, 4), 1, Color.Blue, 500, 0.3f));
+            scene.Add(new Sphere(new Point3D(-2, 0, 4), 1, Color.Green, 10, 0.4f));
+            scene.Add(new Sphere(new Point3D(0, -5001, 0), 5000, Color.Yellow, 1000, 0f));
             lights.Add(new Light(Type.Ambient, 0.2f));
             lights.Add(new Light(Type.Point, 0.6f, new Point3D(2, 1, 0)));
             lights.Add(new Light(Type.Directional, 0.2f, new Point3D(1, 4, 4)));

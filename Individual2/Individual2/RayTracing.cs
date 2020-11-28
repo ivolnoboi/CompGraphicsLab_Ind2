@@ -10,7 +10,10 @@ namespace Individual2
     class RayTracing
     {
         // Скалярное произведение
-        public static float ScalarProduct(Point3D vector1, Point3D vector2) => vector1.X * vector2.X + vector1.Y * vector2.Y + vector1.Z * vector2.Z;
+        public static float ScalarProduct(Point3D vector1, Point3D vector2)
+        { 
+            return vector1.X* vector2.X + vector1.Y * vector2.Y + vector1.Z * vector2.Z;
+        }
 
         // Длина вектора
         public static float Lenght(Point3D vec)
@@ -33,7 +36,7 @@ namespace Individual2
                 for (int y = -height / 2 + 1; y < height / 2; y++)
                 {
                     Point3D D = CanvasToViewport(x, y, width, height);
-                    Color color = TraceRay(obzor, D, 1, float.MaxValue, scene, lights);
+                    Color color = TraceRay(obzor, D, 1, float.MaxValue, 5, scene, lights); // 3 - глубина рекурсии
                     (int, int) coords = GetCoordinatesBitmap(x, y, width, height);
                     colors.SetPixel(coords.Item1, coords.Item2, color);
                 }
@@ -89,7 +92,7 @@ namespace Individual2
                     // Зеркальность
                     if (specular != -1)
                     {
-                        Point3D R = 2 * N * ScalarProduct(N, L) - L;
+                        Point3D R = ReflectRay(N, L);
                         float scalarRV = ScalarProduct(R, V);
                         if (scalarRV > 0)
                             i += (float)(light.Intensity * Math.Pow(scalarRV / (Lenght(R) * Lenght(V)), specular));
@@ -100,32 +103,68 @@ namespace Individual2
             return i;
         }
 
-        public static Color colorWithLightning(Color color, float lightning)
+        public static int GetCorrectValue(int value)
         {
-            var red = (int)(color.R * lightning);
-            var green = (int)(color.G * lightning);
-            var blue = (int)(color.B * lightning);
-            return Color.FromArgb(Math.Min(255, Math.Max(0, red)), Math.Min(255, Math.Max(0, green)), Math.Min(255, Math.Max(0, blue)));
+            return Math.Min(255, Math.Max(0, value));
+        }
+
+        public static Color colorProd(Color color, float value)
+        {
+            var red = (int)(color.R * value);
+            var green = (int)(color.G * value);
+            var blue = (int)(color.B * value);
+            return Color.FromArgb(GetCorrectValue(red), GetCorrectValue(green), GetCorrectValue(blue));
+        }
+
+        public static Color colorSum(Color color1, Color color2)
+        {
+            var red = color1.R + color2.R;
+            var green = color1.G + color2.G;
+            var blue = color1.B + color2.B;
+            return Color.FromArgb(GetCorrectValue(red), GetCorrectValue(green), GetCorrectValue(blue));
+        }
+
+        public static Color ReflectiveColor(Color local, Color reflective, float coefficient)
+        {
+            Color color1 = colorProd(local, 1 - coefficient);
+            Color color2 = colorProd(reflective, coefficient);
+            return colorSum(color1, color2);
         }
 
         // O - исходня точка луча, D - координата окна просмотра (лучи пускаются из O в D)
         // Вычисляет пересечение луча с каждой сферой, и возвращает цвет сферы в ближайшей точке пересечения, 
         // которая находится в требуемом интервале t (от 1 до бесконечности)
-        public static Color TraceRay(Camera O, Point3D D, float t_min, float t_max, List<Sphere> scene, List<Light> lights)
+        public static Color TraceRay(Camera O, Point3D D, float t_min, float t_max, int recursion_depth, List<Sphere> scene, List<Light> lights)
         {
             var tuple = ClosestIntersection(O, D, t_min, t_max, scene);
             Sphere closest_sphere = tuple.Item1;
             float closest_t = tuple.Item2;
+
             if (closest_sphere == null)
-                return Color.White;
+                return Color.Black;
             else
             {
                 Point3D P = O.Position + closest_t * D; // вычисление пересечения
                 Point3D N = P - closest_sphere.Center; // вычисление нормали сферы в точке пересечения
                 N = N / Lenght(N); // нормализуем вектор нормали
                 float lightning = ComputeLighting(P, N, -D, closest_sphere.Specular, scene, lights);
-                return colorWithLightning(closest_sphere.Color, lightning);
+                Color local_color = colorProd(closest_sphere.Color, lightning);
+
+                // Если мы достигли предела рекурсии или объект не отражающий, то мы закончили
+                float r = closest_sphere.Reflective;
+                if (recursion_depth <= 0 || r <= 0)
+                    return local_color;
+
+                // Вычисление отражённого цвета
+                Point3D R = ReflectRay(N, -D);
+                Color reflected_color = TraceRay(new Camera(P), R, 0.001f, float.MaxValue, recursion_depth - 1, scene, lights);
+                return ReflectiveColor(local_color, reflected_color, r);
             }
+        }
+
+        public static Point3D ReflectRay(Point3D N, Point3D R)
+        {
+            return 2 * N * ScalarProduct(N, R) - R;
         }
 
         public static (Sphere, float) ClosestIntersection(Camera O, Point3D D, float t_min, float t_max, List<Sphere> scene)
