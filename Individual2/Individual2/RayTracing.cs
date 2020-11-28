@@ -50,9 +50,10 @@ namespace Individual2
         // Высчитывает освещённость точки
         // specular - значение зеркальности
         // V - вектор обзора, указывающий из P в камеру
-        public static float ComputeLighting(Point3D P, Point3D N, Point3D V, int specular, List<Light> lights)
+        public static float ComputeLighting(Point3D P, Point3D N, Point3D V, int specular, List<Sphere> scene, List<Light> lights)
         {
             float i = 0.0f;
+            float t_max = 0.0f;
             foreach (var light in lights)
             {
                 if (light.Type == Type.Ambient)
@@ -63,8 +64,22 @@ namespace Individual2
                 {
                     Point3D L;
                     if (light.Type == Type.Point)
+                    {
                         L = light.Position - P; // вектор освещения
-                    else L = light.Direction;
+                        t_max = 1;
+                    }
+                    else
+                    {
+                        L = light.Direction;
+                        t_max = float.MaxValue;
+                    }
+
+                    // Проверка тени
+                    var tuple = ClosestIntersection(new Camera(P), L, 0.001f, t_max, scene);
+                    Sphere shadow_sphere = tuple.Item1;
+                    float shadow_t = tuple.Item2;
+                    if (shadow_sphere != null)
+                        continue;
 
                     // Диффузность
                     float scalar = ScalarProduct(N, L);
@@ -98,6 +113,23 @@ namespace Individual2
         // которая находится в требуемом интервале t (от 1 до бесконечности)
         public static Color TraceRay(Camera O, Point3D D, float t_min, float t_max, List<Sphere> scene, List<Light> lights)
         {
+            var tuple = ClosestIntersection(O, D, t_min, t_max, scene);
+            Sphere closest_sphere = tuple.Item1;
+            float closest_t = tuple.Item2;
+            if (closest_sphere == null)
+                return Color.White;
+            else
+            {
+                Point3D P = O.Position + closest_t * D; // вычисление пересечения
+                Point3D N = P - closest_sphere.Center; // вычисление нормали сферы в точке пересечения
+                N = N / Lenght(N); // нормализуем вектор нормали
+                float lightning = ComputeLighting(P, N, -D, closest_sphere.Specular, scene, lights);
+                return colorWithLightning(closest_sphere.Color, lightning);
+            }
+        }
+
+        public static (Sphere, float) ClosestIntersection(Camera O, Point3D D, float t_min, float t_max, List<Sphere> scene)
+        {
             float closest_t = float.MaxValue;
             Sphere closest_sphere = null;
             foreach (var sphere in scene)
@@ -116,16 +148,7 @@ namespace Individual2
                     closest_sphere = sphere;
                 }
             }
-            if (closest_sphere == null)
-                return Color.White;
-            else
-            {
-                Point3D P = O.Position + closest_t * D; // вычисление пересечения
-                Point3D N = P - closest_sphere.Center; // вычисление нормали сферы в точке пересечения
-                N = N / Lenght(N); // нормализуем вектор нормали
-                float lightning = ComputeLighting(P, N, -D, closest_sphere.Specular, lights);
-                return colorWithLightning(closest_sphere.Color, lightning);
-            }
+            return (closest_sphere, closest_t);
         }
 
         // Находит параметр t для нахождения точки пересечения со сферой

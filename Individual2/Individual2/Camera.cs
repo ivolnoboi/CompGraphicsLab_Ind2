@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +20,11 @@ namespace Individual2
         public Camera(float x, float y, float z)
         {
             Position = new Point3D(x, y, z);
+        }
+
+        public Camera(Point3D position)
+        {
+            Position = position;
         }
     }
 }
