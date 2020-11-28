@@ -48,7 +48,9 @@ namespace Individual2
 
         // P - точка сцены, N - нормаль к поверхности
         // Высчитывает освещённость точки
-        public static float ComputeLighting(Point3D P, Point3D N, List<Light> lights)
+        // specular - значение зеркальности
+        // V - вектор обзора, указывающий из P в камеру
+        public static float ComputeLighting(Point3D P, Point3D N, Point3D V, int specular, List<Light> lights)
         {
             float i = 0.0f;
             foreach (var light in lights)
@@ -63,12 +65,32 @@ namespace Individual2
                     if (light.Type == Type.Point)
                         L = light.Position - P; // вектор освещения
                     else L = light.Direction;
+
+                    // Диффузность
                     float scalar = ScalarProduct(N, L);
                     if (scalar > 0)
                         i += (float)(light.Intensity * scalar / (Lenght(N) * Lenght(L)));
+
+                    // Зеркальность
+                    if (specular != -1)
+                    {
+                        Point3D R = 2 * N * ScalarProduct(N, L) - L;
+                        float scalarRV = ScalarProduct(R, V);
+                        if (scalarRV > 0)
+                            i += (float)(light.Intensity * Math.Pow(scalarRV / (Lenght(R) * Lenght(V)), specular));
+
+                    }
                 }
             }
             return i;
+        }
+
+        public static Color colorWithLightning(Color color, float lightning)
+        {
+            var red = (int)(color.R * lightning);
+            var green = (int)(color.G * lightning);
+            var blue = (int)(color.B * lightning);
+            return Color.FromArgb(Math.Min(255, Math.Max(0, red)), Math.Min(255, Math.Max(0, green)), Math.Min(255, Math.Max(0, blue)));
         }
 
         // O - исходня точка луча, D - координата окна просмотра (лучи пускаются из O в D)
@@ -100,10 +122,9 @@ namespace Individual2
             {
                 Point3D P = O.Position + closest_t * D; // вычисление пересечения
                 Point3D N = P - closest_sphere.Center; // вычисление нормали сферы в точке пересечения
-                N = N/Lenght(N); // нормализуем вектор нормали
-                float lightning = ComputeLighting(P, N, lights);
-                Color color = closest_sphere.Color;
-                return Color.FromArgb((int)(color.R * lightning), (int)(color.G * lightning), (int)(color.B * lightning));
+                N = N / Lenght(N); // нормализуем вектор нормали
+                float lightning = ComputeLighting(P, N, -D, closest_sphere.Specular, lights);
+                return colorWithLightning(closest_sphere.Color, lightning);
             }
         }
 

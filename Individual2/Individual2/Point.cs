@@ -43,5 +43,10 @@ namespace Individual2
         {
             return new Point3D(point.X / k, point.Y / k, point.Z / k);
         }
+
+        static public Point3D operator -(Point3D point)
+        {
+            return new Point3D(-point.X, -point.Y, -point.Z);
+        }
     }
 }

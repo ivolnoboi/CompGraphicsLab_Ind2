@@ -12,12 +12,14 @@ namespace Individual2
         public Point3D Center { get; set; }
         public float Radius { get; set; }
         public Color Color { get; set; }
+        public int Specular { get; set; }
 
-        public Sphere(Point3D center, float radius, Color color)
+        public Sphere(Point3D center, float radius, Color color, int specular)
         {
             Center = center;
             Radius = radius;
             Color = color;
+            Specular = specular;
         }
     }
 }
