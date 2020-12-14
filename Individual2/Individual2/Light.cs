@@ -7,38 +7,23 @@ using System.Threading.Tasks;
 
 namespace Individual2
 {
-    enum Type
-    {
+    enum LightType 
+    { 
         Ambient, // окружающее освещение
-        Point, // точечный
-        Directional // направленный
+        Point // точечный источник света
     }
 
     class Light
     {
-        public Type Type;
-        public float Intensity;
+        public LightType Type;
+        public double Intensity;
         public Point3D Position;
-        public Point3D Direction;
 
-        public Light(Type type, float intensity)
+        public Light(LightType type, double intensity, Point3D position)
         {
             Type = type;
             Intensity = intensity;
-        }
-
-        public Light(Type type, float intensity, Point3D otherParam)
-        {
-            Type = type;
-            Intensity = intensity;
-            if (type==Type.Point)
-            {
-                Position = otherParam;
-            }
-            else
-            {
-                Direction = otherParam;
-            }
+            Position = position;
         }
     }
 }

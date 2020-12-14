@@ -10,17 +10,21 @@ namespace Individual2
 {
     class RayTracing
     {
-        private static float eps = 0.00001f;
+        private static Color backgroundColor = Color.LightCoral;
+        private static double eps = 0.0001f;
+        private static List<Figure> Scene;
+        private static List<Light> Lights;
+
         // Скалярное произведение
-        public static float ScalarProduct(Point3D vector1, Point3D vector2)
+        public static double ScalarProduct(Point3D vector1, Point3D vector2)
         {
             return vector1.X * vector2.X + vector1.Y * vector2.Y + vector1.Z * vector2.Z;
         }
 
         // Длина вектора
-        public static float Lenght(Point3D vec)
+        public static double Lenght(Point3D vec)
         {
-            return (float)Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+            return Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
         }
 
         // Приводит к вектору единичной длины
@@ -35,249 +39,297 @@ namespace Individual2
             return (width / 2 + x, height / 2 - y);
         }
 
-        // Даёт корректный цвет (в диапазоне от 0 до 255)
-        public static int GetCorrectValue(int value)
+        // Даёт корректное значение (которое должно лежать в диапазоне [min, max])
+        public static int GetCorrectValue(int value, int min = 0, int max = 255)
         {
-            return Math.Min(255, Math.Max(0, value));
+            return Math.Min(max, Math.Max(min, value));
+        }
+
+        // Даёт корректное значение (которое должно лежать в диапазоне [min, max])
+        public static double GetCorrectValue(double value, double min = 0, double max = 255)
+        {
+            return Math.Min(max, Math.Max(min, value));
         }
 
         // Умножение цвета на коэффициент
-        public static Color colorProd(Color color, float value)
+        public static Color colorProd(Color color, double value)
         {
-            var red = (int)(color.R * value);
-            var green = (int)(color.G * value);
-            var blue = (int)(color.B * value);
+            int red = (int)(color.R * value);
+            int green = (int)(color.G * value);
+            int blue = (int)(color.B * value);
             return Color.FromArgb(GetCorrectValue(red), GetCorrectValue(green), GetCorrectValue(blue));
         }
 
         // Сложение цветов
         public static Color colorSum(Color color1, Color color2)
         {
-            var red = color1.R + color2.R;
-            var green = color1.G + color2.G;
-            var blue = color1.B + color2.B;
+            int red = color1.R + color2.R;
+            int green = color1.G + color2.G;
+            int blue = color1.B + color2.B;
             return Color.FromArgb(GetCorrectValue(red), GetCorrectValue(green), GetCorrectValue(blue));
         }
 
         // Заполняет буфер цвета
         public static Bitmap CreateColorScene(int width, int height, List<Figure> scene, List<Light> lights)
         {
-            Bitmap colors = new Bitmap(width, height);
-            Point3D obzor = new Point3D(0, 0, 0);
-            for (int x = -width / 2 + 1; x < width / 2; x++)
-                for (int y = -height / 2 + 1; y < height / 2; y++)
+            Scene = scene;
+            Lights = lights;
+            Point3D camera = new Point3D(0.0, 4.0, -20.0);
+
+            Color[,] colors1 = new Color[height + 1, width + 1];
+            for (int y = (-height / 2) + 1; y < height / 2; y++)
+                Parallel.For((-width / 2) + 1, width / 2, x =>
+               {
+                   //for (int x = (-width / 2) + 1; x < width / 2; x++)
+                   // {
+                   Point3D D = CanvasToViewport(x, y, width, height);
+                   Color color = TraceRay(camera, D, 1.0, double.MaxValue, 1);
+                   int imgX = x + width / 2;
+                   int imgY = height / 2 - y;
+                   if (!(imgX < 0 || imgX >= width || imgY < 0 || imgY >= height))
+                       // continue;
+                       colors1[y + height / 2, x + height / 2] = color;
+                   // }
+               });
+
+            Bitmap bmp = new Bitmap(width, height);
+            for (int y = (-height / 2) + 1; y < height / 2; y++)
+                for (int x = (-width / 2) + 1; x < width / 2; x++)
                 {
-                    Point3D D = CanvasToViewport(x, y, width, height);
-                    Color color = TraceRay(obzor, D, 1, float.MaxValue, 5, scene, lights); // 3 - глубина рекурсии
-                    (int, int) coords = GetCoordinatesBitmap(x, y, width, height);
-                    colors.SetPixel(coords.Item1, coords.Item2, color);
+                    int imgX = x + width / 2;
+                    int imgY = height / 2 - y;
+                    bmp.SetPixel(imgX, imgY, colors1[y + height / 2, x + height / 2]);
                 }
-            return colors;
+            return bmp;
         }
+
 
         // Преобразовать координаты холста в координаты окна просмотра (плоскости проекции)
         public static Point3D CanvasToViewport(int x, int y, int width, int height)
         {
-            return new Point3D((float)(x * 1.0 / width), (float)(y * 1.0 / height), 1);
+            double viewWindowWidth = 1;
+            double viewWindowHeight = 1;
+            double ditanceFromCamera = 1.0;
+            double X = x * viewWindowWidth / width;
+            double Y = y * viewWindowHeight / height;
+            return new Point3D(X, Y, ditanceFromCamera);
         }
-        
+        /*
         // Принадлежит ли точка данной грани
         private static bool pointIsInPlane(Plane plain, Point3D point)
         {
             return (point.X - Math.Max(plain.MaxPoint.X, plain.MinPoint.X) <= eps) && (point.X - Math.Min(plain.MaxPoint.X, plain.MinPoint.X) >= -eps)
                 && (point.Y - Math.Max(plain.MaxPoint.Y, plain.MinPoint.Y) <= eps) && (point.Y - Math.Min(plain.MaxPoint.Y, plain.MinPoint.Y) >= -eps)
                 && (point.Z - Math.Max(plain.MaxPoint.Z, plain.MinPoint.Z) <= eps) && (point.Z - Math.Min(plain.MaxPoint.Z, plain.MinPoint.Z) >= -eps);
-        }
+        }*/
 
-        // P - точка сцены, N - нормаль к поверхности
-        // Высчитывает освещённость точки
-        // specular - значение зеркальности
-        // V - вектор обзора, указывающий из P в камеру
-        public static float ComputeLighting(Point3D P, Point3D N, Point3D V, int specular, List<Figure> scene, List<Light> lights)
+        private static double computeLighting(Point3D point, Point3D normal, Point3D view, double specular)
         {
-            float i = 0.0f;
-            float t_max = 0.0f;
-            foreach (var light in lights)
+            double intensity = 0;
+            double lengthN = Lenght(normal);
+            double lengthV = Lenght(view);
+            double t_max;
+            foreach (var light in Lights)
             {
-                if (light.Type == Type.Ambient)
+                if (light.Type == LightType.Ambient)
                 {
-                    i += light.Intensity;
+                    intensity += light.Intensity;
                 }
                 else
                 {
-                    Point3D L;
-                    if (light.Type == Type.Point)
+                    Point3D vectorLight;
+                    if (light.Type == LightType.Point)
                     {
-                        L = light.Position - P; // вектор освещения
-                        t_max = 1;
+                        vectorLight = light.Position - point;
+                        t_max = 1.0;
                     }
                     else
                     {
-                        L = light.Direction;
-                        t_max = float.MaxValue;
+                        vectorLight = light.Position;
+                        t_max = double.MaxValue;
                     }
-
-                    // Проверка тени
-                    var tuple = elemIntersection(P, L, 0.001f, t_max, scene);
-                    Figure shadow_elem = tuple.Item1;
-                    float shadow_t = tuple.Item2;
-                    if (shadow_elem != null && shadow_elem.type != ElemType.Plane)
+                    var (blocker, _, _) = closestIntersection(point, vectorLight, eps, t_max);
+                    double tr = 1.0;
+                    if (blocker != null)
                         continue;
-
-                    // Диффузность
-                    float scalar = ScalarProduct(N, L);
-                    if (scalar > 0)
-                        i += (float)(light.Intensity * scalar / (Lenght(N) * Lenght(L)));
-
-                    // Зеркальность
-                    if (specular != -1)
+                    double nDotL = ScalarProduct(normal, vectorLight);
+                    if (nDotL > 0)
                     {
-                        Point3D R = ReflectRay(N, L);
-                        float scalarRV = ScalarProduct(R, V);
-                        if (scalarRV > 0)
-                            i += (float)(light.Intensity * Math.Pow(scalarRV / (Lenght(R) * Lenght(V)), specular));
-
+                        intensity += tr * light.Intensity * nDotL / (lengthN * Lenght(vectorLight));
+                    }
+                    if (specular > 0)
+                    {
+                        Point3D vecR = ReflectRay(vectorLight, normal);
+                        double rDotV = ScalarProduct(vecR, view);
+                        if (rDotV > 0)
+                        {
+                            intensity += tr * light.Intensity * Math.Pow(rDotV / (Lenght(vecR) * lengthV), specular);
+                        }
                     }
                 }
             }
-            return i;
+            return intensity;
         }
 
-        public static Color ReflectiveColor(Color local, Color reflective, float coefficient)
+        public static Color ReflectiveColor(Color local, Color reflective, double coefficient)
         {
             Color color1 = colorProd(local, 1 - coefficient);
             Color color2 = colorProd(reflective, coefficient);
             return colorSum(color1, color2);
         }
 
-        // O - исходня точка луча, D - координата окна просмотра (лучи пускаются из O в D)
-        // Вычисляет пересечение луча с каждой сферой, и возвращает цвет сферы в ближайшей точке пересечения, 
-        // которая находится в требуемом интервале t (от 1 до бесконечности)
-        public static Color TraceRay(Point3D O, Point3D D, float t_min, float t_max, int recursion_depth, List<Figure> scene, List<Light> lights)
+        private static Color increase(double k, Color c)
         {
-            var tuple = elemIntersection(O, D, t_min, t_max, scene);
-            Figure closest_elem = tuple.Item1;
-            float closest_t = tuple.Item2;
-
-            if (closest_elem == null)
-                return Color.Black;
-            else
-            {
-                Point3D P = O + closest_t * D; // вычисление пересечения
-                Point3D N;
-                if (closest_elem.type == ElemType.Sphere)
-                {
-                    Sphere sphere = (Sphere)closest_elem;
-                    N = P - sphere.Center; // вычисление нормали сферы в точке пересечения
-                }
-                else
-                {
-                    Plane plane = (Plane)closest_elem;
-                    N = plane.Normal;
-                }
-                N = N / Lenght(N); // нормализуем вектор нормали
-                float lightning = ComputeLighting(P, N, -D, closest_elem.Specular, scene, lights);
-                Color local_color = colorProd(closest_elem.Color, lightning);
-
-                // Если мы достигли предела рекурсии или объект не отражающий, то мы закончили
-                float r = closest_elem.Reflective;
-                if (recursion_depth <= 0 || r <= 0)
-                    return local_color;
-
-                // Вычисление отражённого цвета
-                Point3D R = ReflectRay(N, -D);
-                Color reflected_color = TraceRay(P, R, 0.001f, float.MaxValue, recursion_depth - 1, scene, lights);
-                return ReflectiveColor(local_color, reflected_color, r);
-            }
+            var a = c.A;
+            var r = GetCorrectValue((int)(c.R * k + 5));
+            var g = GetCorrectValue((int)(c.G * k + 5));
+            var b = GetCorrectValue((int)(c.B * k + 5));
+            return Color.FromArgb(a, r, g, b);
         }
 
-        // Отраженный луч
-        public static Point3D ReflectRay(Point3D Normal, Point3D Ray)
+        private static Color TraceRay(Point3D camera, Point3D D, double t_min, double t_max, double depth, int recurseDepth = 5)
+        {
+            var (closest_elem, closest_t, normal) = closestIntersection(camera, D, t_min, t_max);
+            if (closest_elem == null)
+                return backgroundColor;
+            normal = Normalize(normal);
+
+            Point3D point = camera + closest_t * D;
+
+            double lightK = computeLighting(point, normal, -D, closest_elem.Material.Specular);
+            Color localColor = increase(lightK, closest_elem.Color);
+            if (recurseDepth <= 0 || depth <= eps)
+                return localColor;
+
+            Point3D reflectedRay = ReflectRay(-D, normal);
+            Color reflectionColor = TraceRay(point, reflectedRay, eps, double.MaxValue, depth * closest_elem.Material.Reflective, recurseDepth - 1);
+            Color reflected = colorSum(increase(1 - closest_elem.Material.Reflective, localColor), increase(closest_elem.Material.Reflective, reflectionColor));
+            if (closest_elem.Material.Transparent <= 0)
+                return increase(depth, reflected);
+
+            Point3D refracted = RefractRay(D, normal, 1.5);
+            Color trColor = TraceRay(point, refracted, eps, double.MaxValue, depth * closest_elem.Material.Transparent, recurseDepth - 1);
+            Color transparent = colorSum(increase(1 - closest_elem.Material.Transparent, reflected), increase(closest_elem.Material.Transparent, trColor));
+            return increase(depth, transparent);
+        }
+
+        /// <summary>
+        /// Расчет преломленного луча
+        /// </summary>
+        private static Point3D RefractRay(Point3D Ray, Point3D Normal, double coefElem = 1.102, double coefAir = 1.0)
+        {
+            var cos = GetCorrectValue(ScalarProduct(Ray, Normal), -1.0, 1.0);
+            Normal = cos < 0 ? Normal : -Normal;
+            var coef = cos < 0 ? coefAir / coefElem : coefElem / coefAir;
+
+            if (cos < 0)
+                cos = -cos;
+
+            var k = 1.0 - coef * coef * (1.0 - cos * cos);
+            return (k < 0) ? new Point3D(0, 0, 0) : coef * Ray + (coef * cos - Math.Sqrt(k)) * Normal;
+        }
+
+
+        /// <summary>
+        /// Расчёт отраженного луча
+        /// </summary>
+        public static Point3D ReflectRay(Point3D Ray, Point3D Normal)
         {
             return 2 * Normal * ScalarProduct(Normal, Ray) - Ray;
         }
 
-        // Находит элемент сцены, который пересекает луч, и параметр t, определяющий точку пересечения, в интервале от t_min до t_max
-        public static (Figure, float) elemIntersection(Point3D viewPoint, Point3D direction, float t_min, float t_max, List<Figure> scene)
+        /// <summary>
+        /// Находим пересечение луча с элементом сцены
+        /// </summary>
+        private static (Figure, double, Point3D) closestIntersection(Point3D camera, Point3D D, double t_min, double t_max)
         {
-            float intersection_t = float.MaxValue;
-            Figure intersection_elem = null;
-            foreach (var elem in scene)
+            Figure closest_figure = null;
+            double closest_t = double.MaxValue;
+            Point3D norm = new Point3D(0, 0, 0);
+            foreach (var elem in Scene)
             {
-                switch (elem.type)
+                if (elem.type == ElemType.Sphere)
                 {
-                    case ElemType.Sphere:
-                        Sphere sphere = (Sphere)elem;
-                        ValueTuple<float, float> t = IntersectRaySphere(viewPoint, direction, sphere);
-                        float t1 = t.Item1;
-                        float t2 = t.Item2;
-                        if (t1 > t_min && t1 < t_max && t1 < intersection_t)
-                        {
-                            intersection_t = t1;
-                            intersection_elem = sphere;
-                        }
-                        if (t2 > t_min && t2 < t_max && t2 < intersection_t)
-                        {
-                            intersection_t = t2;
-                            intersection_elem = sphere;
-                        }
-                        break;
-                    case ElemType.Cube:
-                        break;
-                    case ElemType.Plane:
-                        Plane plane = (Plane)elem;
-                        float t_plane = IntersectRayPlane(viewPoint, direction, plane.MaxPoint, plane);
-                        Point3D intersectionPoint = viewPoint + t_plane * direction; // точка пересечения на плоскости
-                        if (pointIsInPlane(plane, intersectionPoint))
-                        {
-                            if (t_plane > t_min && t_plane < t_max && t_plane < intersection_t)
-                            {
-                                intersection_t = t_plane;
-                                intersection_elem = plane;
-                            }
-                        }
-                        break;
-                    default:
-                        break;
+                    var t = IntersectRaySphere(camera, D, elem);
+                    double t1 = t.Item1, t2 = t.Item2;
+                    if (t1 > t_min && t1 < t_max && t1 < closest_t)
+                    {
+                        closest_t = t1;
+                        closest_figure = elem;
+                    }
+                    if (t2 > t_min && t2 < t_max && t2 < closest_t)
+                    {
+                        closest_t = t2;
+                        closest_figure = elem;
+                    }
+                }
+                else
+                {
+                    var t = IntersectRayPlane(camera, D, elem);
+                    var t1 = t.Item1;
+                    if (t1 < closest_t && t_min < t1 && t1 < t_max)
+                    {
+                        closest_t = t1;
+                        closest_figure = elem;
+                        norm = t.Item2;
+                    }
                 }
             }
-            return (intersection_elem, intersection_t);
+            if (closest_figure != null && closest_figure.type == ElemType.Sphere)
+            {
+                Point3D point = camera + closest_t * D;
+                norm = point - closest_figure.Center;
+            }
+            return (closest_figure, closest_t, norm);
         }
 
-        // Находит параметр t для нахождения точки пересечения со сферой (решает квадратное уравнение)
-        public static (float, float) IntersectRaySphere(Point3D viewPoint, Point3D direction, Sphere sphere)
+        /// <summary>
+        /// Находит параметр t для нахождения точки пересечения со сферой (решает квадратное уравнение)
+        /// </summary>
+        public static (double, double) IntersectRaySphere(Point3D viewPoint, Point3D direction, Figure sphere)
         {
             Point3D center = sphere.Center;
-            float radius = sphere.Radius;
+            double radius = sphere.Radius;
             Point3D OC = viewPoint - center;
 
-            float k1 = ScalarProduct(direction, direction); // коэффициент a при квадратном уравнении
-            float k2 = 2 * ScalarProduct(OC, direction); // коэффициент b при квадратном уравнении
-            float k3 = ScalarProduct(OC, OC) - radius * radius; // коэффициент c при квадратном уравнении
+            double k1 = ScalarProduct(direction, direction); // коэффициент a при квадратном уравнении
+            double k2 =/* 2 * */ScalarProduct(OC, direction); // коэффициент b при квадратном уравнении
+            double k3 = ScalarProduct(OC, OC) - radius * radius; // коэффициент c при квадратном уравнении
 
-            float discriminant = k2 * k2 - 4 * k1 * k3;
+            double discriminant = k2 * k2 - /*4 * */k1 * k3;
 
             if (discriminant < 0) // если нет пересечений
-                return (float.MaxValue, float.MaxValue);
+                return (double.MaxValue, double.MaxValue);
 
-            float t1 = (float)((-k2 + Math.Sqrt(discriminant)) / (2 * k1));
-            float t2 = (float)((-k2 - Math.Sqrt(discriminant)) / (2 * k1));
+            double t1 = (-k2 + Math.Sqrt(discriminant)) / (/*2 **/ k1);
+            double t2 = (-k2 - Math.Sqrt(discriminant)) / (/*2 **/ k1);
             return (t1, t2);
         }
 
-        // Находит параметр t для нахождения точки пересечения с плоскостью
-        public static float IntersectRayPlane(Point3D viewPoint, Point3D direction, Point3D planePoint, Plane plane)
+        /// <summary>
+        /// Находит параметр t для нахождения точки пересечения с плоскостью
+        /// </summary>
+        public static (double, Point3D) IntersectRayPlane(Point3D camera, Point3D D, Figure polyhedron)
         {
-            float t = float.MaxValue; // параметр для точки пересечения
-            Point3D direct = direction - viewPoint; // ТУТ НЕЧТО СТРАННОЕ ПРОИСХОДИТ (ЕСЛИ ПРОСТО direction В СКАЛЯРНОЕ, ТО ВСЁ ЗЕРКАЛЬНОЕ СТАНОВИТСЯ)
-            float denominator = ScalarProduct(plane.Normal, direction);
-            if (denominator > 0)
+            double t = double.MaxValue;
+            Point3D norm = new Point3D(0, 0, 0);
+            foreach (var face in polyhedron.Faces)
             {
-                Point3D vec = planePoint - viewPoint;
-                float numerator = ScalarProduct(vec, plane.Normal);
-                t = numerator / denominator;
+                var normal = Normalize(face.normal);
+                var scalar = ScalarProduct(D, normal);
+                if (scalar < eps)
+                    continue;
+                var d = ScalarProduct(face.center - camera, normal) / scalar;
+                if (d < 0)
+                    continue;
+                var point = camera + d * D;
+                if (t > d && face.inside(point))
+                {
+                    t = d;
+                    norm = -normal;
+                }
             }
-            return t;
+            return (t, norm);
         }
     }
 }
