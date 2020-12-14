@@ -14,18 +14,21 @@ namespace Individual2
     {
         List<Figure> scene = new List<Figure>();
         List<Light> lights = new List<Light>();
+        Point3D positionLight2 = new Point3D(-9.0, 5.0, -9.0);
         public Form1()
         {
             InitializeComponent();
             light1.Checked = true;
             light2.Checked = true;
             matteCube.Checked = true;
-            matteCube2.Checked = true;
+            matteSphere2.Checked = true;
             matteSphere.Checked = true;
             mirrorCube.Checked = true;
             mirrorSphere.Checked = true;
             transparentCube.Checked = true;
             transparentSphere.Checked = true;
+            enableMirror.Checked = true;
+            enableTransparent.Checked = true;
         }
         private void addWall(List<Point3D> points, Point3D normal, Color color, Material material)
         {
@@ -61,25 +64,25 @@ namespace Individual2
             Material matte = new Material();
             Material mirror = new Material();
             if (enableMirror.Checked)
-                mirror = new Material(1000, 1, 0);
+                mirror = new Material(0, 1, 0);
             Material glass = new Material();
             if (enableTransparent.Checked)
                 glass = new Material(0, 0, 1);
             if (matteSphere.Checked)
-                addSphere(new Point3D(-5.0, 5.0, 1.0), 2.0, Color.LightCoral, matte);
+                addSphere(new Point3D(-8.0, 5.0, 4.0), 1.0, Color.LightCoral, matte);
             if (mirrorSphere.Checked)
-                addSphere(new Point3D(0.0, 4.0, -3.0), 2.0, Color.White, mirror);
+                addSphere(new Point3D(5.0, 5.0, 3.0), 2.0, Color.White, mirror);
             if (transparentSphere.Checked)
-                addSphere(new Point3D(4.5, 1.0, -5.0), 1.5, Color.White, glass);
+                addSphere(new Point3D(0.0, 4.0, -5.0), 1.5, Color.White, glass);
+            if (matteSphere2.Checked)
+                addSphere(new Point3D(-4.5, 0.0, -6.0), 1.0, Color.Green, matte);
 
             if (matteCube.Checked)
-                addCube(1.0, new Point3D(3.0, 1.0, 0.0), Color.Red, matte);
-            if (matteCube2.Checked)
-                addCube(1.0, new Point3D(-4.5, 0.0, -6.0), Color.Green, matte);
+                addCube(1.0, new Point3D(4.0, 0.5, 0.0), Color.Red, matte);
             if (mirrorCube.Checked)
-                addCube(1.0, new Point3D(1.7, 0, -5.0), Color.White, glass);
+                addCube(1.0, new Point3D(-4.0, 1.5, 1.0), Color.White, mirror);
             if (transparentCube.Checked)
-                addCube(1.0, new Point3D(-7.0, 1.0, 7.0), Color.White, mirror);
+                addCube(1.0, new Point3D(2.0, 0, -5.0), Color.White, glass);
 
             var points = new List<Point3D>() {
             new Point3D(-10.0, -1.0, -10.0),
@@ -135,12 +138,32 @@ namespace Individual2
             if (light1.Checked)
                 lights.Add(new Light(LightType.Point, 0.6, new Point3D(0.0, 9.0, 0.0)));
             if (light2.Checked)
-                lights.Add(new Light(LightType.Point, 0.8, new Point3D(-9.0, 5.0, -9.0)));
+                lights.Add(new Light(LightType.Point, 0.8, positionLight2));
 
             pictureBox1.Image = RayTracing.CreateColorScene(pictureBox1.Width, pictureBox1.Height, scene, lights);
 
             lights.Clear();
             scene.Clear();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            positionLight2 = new Point3D(-9.0, 5.0, 9.0);
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            positionLight2 = new Point3D(9.0, 5.0, 9.0);
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            positionLight2 = new Point3D(-9.0, 5.0, -9.0);
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            positionLight2 = new Point3D(9.0, 5.0, -9.0);
         }
     }
 }

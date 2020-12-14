@@ -10,33 +10,53 @@ namespace Individual2
 {
     class RayTracing
     {
-        private static Color backgroundColor = Color.LightCoral;
         private static double eps = 0.0001f;
         private static List<Figure> Scene;
         private static List<Light> Lights;
 
-        // Скалярное произведение
+        /// <summary>
+        /// Скалярное произведение векторов
+        /// </summary>
         public static double ScalarProduct(Point3D vector1, Point3D vector2)
         {
             return vector1.X * vector2.X + vector1.Y * vector2.Y + vector1.Z * vector2.Z;
         }
 
-        // Длина вектора
+        /// <summary>
+        /// Длина вектора
+        /// </summary>
         public static double Lenght(Point3D vec)
         {
-            return Math.Sqrt(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z);
+            return Math.Sqrt(ScalarProduct(vec, vec));
         }
 
-        // Приводит к вектору единичной длины
+        /// <summary>
+        /// Приводит к вектору единичной длины
+        /// </summary>
         public static Point3D Normalize(Point3D vec)
         {
             return vec / Lenght(vec);
         }
 
-        // Получить координаты на Bitmap
+        /// <summary>
+        /// Получить координаты на Bitmap
+        /// </summary>
         public static (int, int) GetCoordinatesBitmap(int x, int y, int width, int height)
         {
             return (width / 2 + x, height / 2 - y);
+        }
+
+        /// <summary>
+        /// Преобразовать координаты холста в координаты окна просмотра (плоскости проекции)
+        /// </summary>
+        public static Point3D CanvasToViewport(int x, int y, int width, int height)
+        {
+            double viewWindowWidth = 1;
+            double viewWindowHeight = 1;
+            double ditanceFromCamera = 1.0;
+            double X = x * viewWindowWidth / width;
+            double Y = y * viewWindowHeight / height;
+            return new Point3D(X, Y, ditanceFromCamera);
         }
 
         // Даёт корректное значение (которое должно лежать в диапазоне [min, max])
@@ -54,9 +74,9 @@ namespace Individual2
         // Умножение цвета на коэффициент
         public static Color colorProd(Color color, double value)
         {
-            int red = (int)(color.R * value);
-            int green = (int)(color.G * value);
-            int blue = (int)(color.B * value);
+            int red = (int)(color.R * value + 5);
+            int green = (int)(color.G * value + 5);
+            int blue = (int)(color.B * value + 5);
             return Color.FromArgb(GetCorrectValue(red), GetCorrectValue(green), GetCorrectValue(blue));
         }
 
@@ -69,7 +89,9 @@ namespace Individual2
             return Color.FromArgb(GetCorrectValue(red), GetCorrectValue(green), GetCorrectValue(blue));
         }
 
-        // Заполняет буфер цвета
+        /// <summary>
+        /// Заполняет буфер цвета
+        /// </summary>
         public static Bitmap CreateColorScene(int width, int height, List<Figure> scene, List<Light> lights)
         {
             Scene = scene;
@@ -80,55 +102,30 @@ namespace Individual2
             for (int y = (-height / 2) + 1; y < height / 2; y++)
                 Parallel.For((-width / 2) + 1, width / 2, x =>
                {
-                   //for (int x = (-width / 2) + 1; x < width / 2; x++)
-                   // {
                    Point3D D = CanvasToViewport(x, y, width, height);
                    Color color = TraceRay(camera, D, 1.0, double.MaxValue, 1);
-                   int imgX = x + width / 2;
-                   int imgY = height / 2 - y;
-                   if (!(imgX < 0 || imgX >= width || imgY < 0 || imgY >= height))
-                       // continue;
+                   var coord = GetCoordinatesBitmap(x, y, width, height);
+                   if (!(coord.Item1 < 0 || coord.Item1 >= width || coord.Item2 < 0 || coord.Item2 >= height))
                        colors1[y + height / 2, x + height / 2] = color;
-                   // }
                });
 
             Bitmap bmp = new Bitmap(width, height);
             for (int y = (-height / 2) + 1; y < height / 2; y++)
                 for (int x = (-width / 2) + 1; x < width / 2; x++)
                 {
-                    int imgX = x + width / 2;
-                    int imgY = height / 2 - y;
-                    bmp.SetPixel(imgX, imgY, colors1[y + height / 2, x + height / 2]);
+                    var coord = GetCoordinatesBitmap(x, y, width, height);
+                    bmp.SetPixel(coord.Item1, coord.Item2, colors1[y + height / 2, x + height / 2]);
                 }
             return bmp;
         }
 
-
-        // Преобразовать координаты холста в координаты окна просмотра (плоскости проекции)
-        public static Point3D CanvasToViewport(int x, int y, int width, int height)
-        {
-            double viewWindowWidth = 1;
-            double viewWindowHeight = 1;
-            double ditanceFromCamera = 1.0;
-            double X = x * viewWindowWidth / width;
-            double Y = y * viewWindowHeight / height;
-            return new Point3D(X, Y, ditanceFromCamera);
-        }
-        /*
-        // Принадлежит ли точка данной грани
-        private static bool pointIsInPlane(Plane plain, Point3D point)
-        {
-            return (point.X - Math.Max(plain.MaxPoint.X, plain.MinPoint.X) <= eps) && (point.X - Math.Min(plain.MaxPoint.X, plain.MinPoint.X) >= -eps)
-                && (point.Y - Math.Max(plain.MaxPoint.Y, plain.MinPoint.Y) <= eps) && (point.Y - Math.Min(plain.MaxPoint.Y, plain.MinPoint.Y) >= -eps)
-                && (point.Z - Math.Max(plain.MaxPoint.Z, plain.MinPoint.Z) <= eps) && (point.Z - Math.Min(plain.MaxPoint.Z, plain.MinPoint.Z) >= -eps);
-        }*/
-
+        /// <summary>
+        /// Вычисляет освещенность точки
+        /// </summary>
         private static double computeLighting(Point3D point, Point3D normal, Point3D view, double specular)
         {
             double intensity = 0;
-            double lengthN = Lenght(normal);
-            double lengthV = Lenght(view);
-            double t_max;
+
             foreach (var light in Lights)
             {
                 if (light.Type == LightType.Ambient)
@@ -137,33 +134,26 @@ namespace Individual2
                 }
                 else
                 {
-                    Point3D vectorLight;
-                    if (light.Type == LightType.Point)
-                    {
-                        vectorLight = light.Position - point;
-                        t_max = 1.0;
-                    }
-                    else
-                    {
-                        vectorLight = light.Position;
-                        t_max = double.MaxValue;
-                    }
-                    var (blocker, _, _) = closestIntersection(point, vectorLight, eps, t_max);
-                    double tr = 1.0;
-                    if (blocker != null)
+                    Point3D vectorLight = light.Position - point;
+                    double t = 1.0;
+
+                    var (figureShadow, _, _) = Intersection(point, vectorLight, eps, t);
+                    if (figureShadow != null)
                         continue;
-                    double nDotL = ScalarProduct(normal, vectorLight);
-                    if (nDotL > 0)
+
+                    double scalarNL = ScalarProduct(normal, vectorLight);
+                    if (scalarNL > 0)
                     {
-                        intensity += tr * light.Intensity * nDotL / (lengthN * Lenght(vectorLight));
+                        intensity += light.Intensity * scalarNL / (Lenght(normal) * Lenght(vectorLight));
                     }
+
                     if (specular > 0)
                     {
-                        Point3D vecR = ReflectRay(vectorLight, normal);
-                        double rDotV = ScalarProduct(vecR, view);
-                        if (rDotV > 0)
+                        Point3D vectorReflect = ReflectRay(vectorLight, normal);
+                        double scalarRV = ScalarProduct(vectorReflect, view);
+                        if (scalarRV > 0)
                         {
-                            intensity += tr * light.Intensity * Math.Pow(rDotV / (Lenght(vecR) * lengthV), specular);
+                            intensity += light.Intensity * Math.Pow(scalarRV / (Lenght(vectorReflect) * Lenght(view)), specular);
                         }
                     }
                 }
@@ -171,46 +161,42 @@ namespace Individual2
             return intensity;
         }
 
-        public static Color ReflectiveColor(Color local, Color reflective, double coefficient)
+        public static Color ProdSumColor(Color local, Color reflect_refractColor, double coefficient)
         {
             Color color1 = colorProd(local, 1 - coefficient);
-            Color color2 = colorProd(reflective, coefficient);
+            Color color2 = colorProd(reflect_refractColor, coefficient);
             return colorSum(color1, color2);
         }
 
-        private static Color increase(double k, Color c)
+        private static Color TraceRay(Point3D camera, Point3D D, double t_min, double t_max, double intensityRay, int recurseDepth = 5)
         {
-            var a = c.A;
-            var r = GetCorrectValue((int)(c.R * k + 5));
-            var g = GetCorrectValue((int)(c.G * k + 5));
-            var b = GetCorrectValue((int)(c.B * k + 5));
-            return Color.FromArgb(a, r, g, b);
-        }
+            var (closest_elem, closest_t, normal) = Intersection(camera, D, t_min, t_max);
 
-        private static Color TraceRay(Point3D camera, Point3D D, double t_min, double t_max, double depth, int recurseDepth = 5)
-        {
-            var (closest_elem, closest_t, normal) = closestIntersection(camera, D, t_min, t_max);
             if (closest_elem == null)
-                return backgroundColor;
+                return Color.White;
+
             normal = Normalize(normal);
 
-            Point3D point = camera + closest_t * D;
+            Point3D point = camera + closest_t * D; // точка пересечения
 
-            double lightK = computeLighting(point, normal, -D, closest_elem.Material.Specular);
-            Color localColor = increase(lightK, closest_elem.Color);
-            if (recurseDepth <= 0 || depth <= eps)
+            double light = computeLighting(point, normal, -D, closest_elem.Material.Specular);
+            Color localColor = colorProd(closest_elem.Color, light);
+            
+            if (recurseDepth <= 0 || intensityRay <= eps)
                 return localColor;
 
             Point3D reflectedRay = ReflectRay(-D, normal);
-            Color reflectionColor = TraceRay(point, reflectedRay, eps, double.MaxValue, depth * closest_elem.Material.Reflective, recurseDepth - 1);
-            Color reflected = colorSum(increase(1 - closest_elem.Material.Reflective, localColor), increase(closest_elem.Material.Reflective, reflectionColor));
+            Color reflectionColor = TraceRay(point, reflectedRay, eps, double.MaxValue, intensityRay * closest_elem.Material.Reflective, recurseDepth - 1);
+            Color reflected = ProdSumColor(localColor, reflectionColor, closest_elem.Material.Reflective);
+            
             if (closest_elem.Material.Transparent <= 0)
-                return increase(depth, reflected);
+                return colorProd(reflected, intensityRay);
 
-            Point3D refracted = RefractRay(D, normal, 1.5);
-            Color trColor = TraceRay(point, refracted, eps, double.MaxValue, depth * closest_elem.Material.Transparent, recurseDepth - 1);
-            Color transparent = colorSum(increase(1 - closest_elem.Material.Transparent, reflected), increase(closest_elem.Material.Transparent, trColor));
-            return increase(depth, transparent);
+            Point3D refractedRay = RefractRay(D, normal, 1.5);
+            Color transparentColor = TraceRay(point, refractedRay, eps, double.MaxValue, intensityRay * closest_elem.Material.Transparent, recurseDepth - 1);
+            Color transparent = ProdSumColor(reflected, transparentColor, closest_elem.Material.Transparent);
+
+            return colorProd(transparent, intensityRay);
         }
 
         /// <summary>
@@ -241,11 +227,11 @@ namespace Individual2
         /// <summary>
         /// Находим пересечение луча с элементом сцены
         /// </summary>
-        private static (Figure, double, Point3D) closestIntersection(Point3D camera, Point3D D, double t_min, double t_max)
+        private static (Figure, double, Point3D) Intersection(Point3D camera, Point3D D, double t_min, double t_max)
         {
             Figure closest_figure = null;
             double closest_t = double.MaxValue;
-            Point3D norm = new Point3D(0, 0, 0);
+            Point3D normal = null;
             foreach (var elem in Scene)
             {
                 if (elem.type == ElemType.Sphere)
@@ -256,11 +242,15 @@ namespace Individual2
                     {
                         closest_t = t1;
                         closest_figure = elem;
+                        Point3D point = camera + closest_t * D;
+                        normal = point - closest_figure.Center;
                     }
                     if (t2 > t_min && t2 < t_max && t2 < closest_t)
                     {
                         closest_t = t2;
                         closest_figure = elem;
+                        Point3D point = camera + closest_t * D;
+                        normal = point - closest_figure.Center;
                     }
                 }
                 else
@@ -271,16 +261,11 @@ namespace Individual2
                     {
                         closest_t = t1;
                         closest_figure = elem;
-                        norm = t.Item2;
+                        normal = t.Item2;
                     }
                 }
             }
-            if (closest_figure != null && closest_figure.type == ElemType.Sphere)
-            {
-                Point3D point = camera + closest_t * D;
-                norm = point - closest_figure.Center;
-            }
-            return (closest_figure, closest_t, norm);
+            return (closest_figure, closest_t, normal);
         }
 
         /// <summary>

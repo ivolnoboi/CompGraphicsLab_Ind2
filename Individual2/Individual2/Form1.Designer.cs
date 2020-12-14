@@ -37,7 +37,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.matteCube = new System.Windows.Forms.CheckBox();
             this.matteSphere = new System.Windows.Forms.CheckBox();
-            this.matteCube2 = new System.Windows.Forms.CheckBox();
+            this.matteSphere2 = new System.Windows.Forms.CheckBox();
             this.mirrorCube = new System.Windows.Forms.CheckBox();
             this.mirrorSphere = new System.Windows.Forms.CheckBox();
             this.transparentCube = new System.Windows.Forms.CheckBox();
@@ -48,6 +48,11 @@
             this.right = new System.Windows.Forms.RadioButton();
             this.front = new System.Windows.Forms.RadioButton();
             this.back = new System.Windows.Forms.RadioButton();
+            this.button2 = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
+            this.button3 = new System.Windows.Forms.Button();
+            this.button4 = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -134,22 +139,22 @@
             // matteSphere
             // 
             this.matteSphere.AutoSize = true;
-            this.matteSphere.Location = new System.Drawing.Point(837, 336);
+            this.matteSphere.Location = new System.Drawing.Point(837, 309);
             this.matteSphere.Name = "matteSphere";
             this.matteSphere.Size = new System.Drawing.Size(133, 21);
             this.matteSphere.TabIndex = 14;
             this.matteSphere.Text = "Матовая сфера";
             this.matteSphere.UseVisualStyleBackColor = true;
             // 
-            // matteCube2
+            // matteSphere2
             // 
-            this.matteCube2.AutoSize = true;
-            this.matteCube2.Location = new System.Drawing.Point(837, 309);
-            this.matteCube2.Name = "matteCube2";
-            this.matteCube2.Size = new System.Drawing.Size(127, 21);
-            this.matteCube2.TabIndex = 15;
-            this.matteCube2.Text = "Матовый куб 2";
-            this.matteCube2.UseVisualStyleBackColor = true;
+            this.matteSphere2.AutoSize = true;
+            this.matteSphere2.Location = new System.Drawing.Point(837, 336);
+            this.matteSphere2.Name = "matteSphere2";
+            this.matteSphere2.Size = new System.Drawing.Size(145, 21);
+            this.matteSphere2.TabIndex = 15;
+            this.matteSphere2.Text = "Матовая сфера 2";
+            this.matteSphere2.UseVisualStyleBackColor = true;
             // 
             // mirrorCube
             // 
@@ -257,11 +262,66 @@
             this.back.Text = "Задняя";
             this.back.UseVisualStyleBackColor = true;
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(837, 510);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(133, 40);
+            this.button2.TabIndex = 26;
+            this.button2.Text = "Влево вперёд";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label4.Location = new System.Drawing.Point(837, 482);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(272, 25);
+            this.label4.TabIndex = 27;
+            this.label4.Text = "Переместить 2 источник";
+            // 
+            // button3
+            // 
+            this.button3.Location = new System.Drawing.Point(976, 556);
+            this.button3.Name = "button3";
+            this.button3.Size = new System.Drawing.Size(133, 40);
+            this.button3.TabIndex = 28;
+            this.button3.Text = "Вправо назад";
+            this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
+            // 
+            // button4
+            // 
+            this.button4.Location = new System.Drawing.Point(837, 556);
+            this.button4.Name = "button4";
+            this.button4.Size = new System.Drawing.Size(133, 40);
+            this.button4.TabIndex = 29;
+            this.button4.Text = "Влево назад";
+            this.button4.UseVisualStyleBackColor = true;
+            this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(976, 510);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(133, 40);
+            this.button5.TabIndex = 30;
+            this.button5.Text = "Вправо вперёд";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1129, 793);
+            this.Controls.Add(this.button5);
+            this.Controls.Add(this.button4);
+            this.Controls.Add(this.button3);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.back);
             this.Controls.Add(this.front);
             this.Controls.Add(this.right);
@@ -272,7 +332,7 @@
             this.Controls.Add(this.transparentCube);
             this.Controls.Add(this.mirrorSphere);
             this.Controls.Add(this.mirrorCube);
-            this.Controls.Add(this.matteCube2);
+            this.Controls.Add(this.matteSphere2);
             this.Controls.Add(this.matteSphere);
             this.Controls.Add(this.matteCube);
             this.Controls.Add(this.label3);
@@ -301,7 +361,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.CheckBox matteCube;
         private System.Windows.Forms.CheckBox matteSphere;
-        private System.Windows.Forms.CheckBox matteCube2;
+        private System.Windows.Forms.CheckBox matteSphere2;
         private System.Windows.Forms.CheckBox mirrorCube;
         private System.Windows.Forms.CheckBox mirrorSphere;
         private System.Windows.Forms.CheckBox transparentCube;
@@ -312,6 +372,11 @@
         private System.Windows.Forms.RadioButton right;
         private System.Windows.Forms.RadioButton front;
         private System.Windows.Forms.RadioButton back;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button5;
     }
 }
 

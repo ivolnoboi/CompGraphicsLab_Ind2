@@ -33,9 +33,9 @@ namespace Individual2
         public List<Point3D> points;
         public Point3D center;
         public Point3D normal;
-        bool xconst; // points.all { point -> point.x == points[0].x }
-        bool yconst; // points.all { point -> point.x == points[0].y }
-        bool zconst; // points.all { point -> point.x == points[0].z }
+        bool xconst;
+        bool yconst;
+        bool zconst;
 
         public Face(List<Point3D> points)
         {

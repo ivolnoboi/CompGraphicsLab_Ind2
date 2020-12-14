@@ -8,9 +8,9 @@ namespace Individual2
 {
     class Material
     {
-        public int Specular { get; set; } = 0;
+        public int Specular { get; set; } = 0; // блики
         public double Reflective { get; set; } = 0.0; // отражение
-        public double Transparent { get; set; } = 0.0;
+        public double Transparent { get; set; } = 0.0; // прозрачность
 
         public Material() { }
         public Material(int specular, double reflective, double transparent)
