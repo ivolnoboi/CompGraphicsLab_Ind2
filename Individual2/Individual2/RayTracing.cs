@@ -128,12 +128,6 @@ namespace Individual2
 
             foreach (var light in Lights)
             {
-                if (light.Type == LightType.Ambient)
-                {
-                    intensity += light.Intensity;
-                }
-                else
-                {
                     Point3D vectorLight = light.Position - point;
                     double t = 1.0;
 
@@ -156,7 +150,6 @@ namespace Individual2
                             intensity += light.Intensity * Math.Pow(scalarRV / (Lenght(vectorReflect) * Lenght(view)), specular);
                         }
                     }
-                }
             }
             return intensity;
         }
@@ -234,35 +227,39 @@ namespace Individual2
             Point3D normal = null;
             foreach (var elem in Scene)
             {
-                if (elem.type == ElemType.Sphere)
+                switch (elem.type)
                 {
-                    var t = IntersectRaySphere(camera, D, elem);
-                    double t1 = t.Item1, t2 = t.Item2;
-                    if (t1 > t_min && t1 < t_max && t1 < closest_t)
-                    {
-                        closest_t = t1;
-                        closest_figure = elem;
-                        Point3D point = camera + closest_t * D;
-                        normal = point - closest_figure.Center;
-                    }
-                    if (t2 > t_min && t2 < t_max && t2 < closest_t)
-                    {
-                        closest_t = t2;
-                        closest_figure = elem;
-                        Point3D point = camera + closest_t * D;
-                        normal = point - closest_figure.Center;
-                    }
-                }
-                else
-                {
-                    var t = IntersectRayPlane(camera, D, elem);
-                    var t1 = t.Item1;
-                    if (t1 < closest_t && t_min < t1 && t1 < t_max)
-                    {
-                        closest_t = t1;
-                        closest_figure = elem;
-                        normal = t.Item2;
-                    }
+                    case ElemType.Sphere:
+                        var t = IntersectRaySphere(camera, D, (Sphere)elem);
+                        double t1 = t.Item1, t2 = t.Item2;
+                        if (t1 > t_min && t1 < t_max && t1 < closest_t)
+                        {
+                            closest_t = t1;
+                            closest_figure = elem;
+                            Point3D point = camera + closest_t * D;
+                            normal = point - closest_figure.Center;
+                        }
+                        if (t2 > t_min && t2 < t_max && t2 < closest_t)
+                        {
+                            closest_t = t2;
+                            closest_figure = elem;
+                            Point3D point = camera + closest_t * D;
+                            normal = point - closest_figure.Center;
+                        }
+                        break;
+                    case ElemType.Cube:
+                    case ElemType.Plain:
+                        var t_p = IntersectRayPlane(camera, D, elem);
+                        var t1_p = t_p.Item1;
+                        if (t1_p < closest_t && t_min < t1_p && t1_p < t_max)
+                        {
+                            closest_t = t1_p;
+                            closest_figure = elem;
+                            normal = t_p.Item2;
+                        }
+                        break;
+                    default:
+                        break;
                 }
             }
             return (closest_figure, closest_t, normal);
@@ -271,7 +268,7 @@ namespace Individual2
         /// <summary>
         /// Находит параметр t для нахождения точки пересечения со сферой (решает квадратное уравнение)
         /// </summary>
-        public static (double, double) IntersectRaySphere(Point3D viewPoint, Point3D direction, Figure sphere)
+        public static (double, double) IntersectRaySphere(Point3D viewPoint, Point3D direction, Sphere sphere)
         {
             Point3D center = sphere.Center;
             double radius = sphere.Radius;
@@ -294,11 +291,11 @@ namespace Individual2
         /// <summary>
         /// Находит параметр t для нахождения точки пересечения с плоскостью
         /// </summary>
-        public static (double, Point3D) IntersectRayPlane(Point3D camera, Point3D D, Figure polyhedron)
+        public static (double, Point3D) IntersectRayPlane(Point3D camera, Point3D D, Figure figure)
         {
             double t = double.MaxValue;
             Point3D norm = new Point3D(0, 0, 0);
-            foreach (var face in polyhedron.Faces)
+            foreach (Face face in figure.Faces)
             {
                 var normal = Normalize(face.normal);
                 var scalar = ScalarProduct(D, normal);
@@ -308,7 +305,7 @@ namespace Individual2
                 if (d < 0)
                     continue;
                 var point = camera + d * D;
-                if (t > d && face.Inside(point))
+                if (d < t && face.Inside(point))
                 {
                     t = d;
                     norm = -normal;

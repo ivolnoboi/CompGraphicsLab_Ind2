@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Globalization;
+using System.Windows.Forms;
 
 namespace Individual2
 {
@@ -240,23 +241,36 @@ namespace Individual2
     {
         public ElemType type;
         public Point3D Center;
-        public double Radius = 0.0;
         public Color Color = Color.White;
         public Material Material = new Material();
-        public List<Face> Faces;
+        public List<Face> Faces = new List<Face>();
 
-        public Figure(List<Face> faces)
+        public Figure() { }
+
+        public virtual void translate(double x, double y, double z) { }
+    }
+
+    class Sphere : Figure
+    {
+        public double Radius = 0.0;
+        public Sphere(Point3D center, double radius, Color color, Material material)
         {
-            if (faces.Count != 0)
-            {
-                Faces = faces;
-                findCenter();
-                if (faces.Count == 1)
-                    type = ElemType.Plain;
-            }
+            type = ElemType.Sphere;
+            Radius = radius;
+            Center = center;
+            Color = color;
+            Material = material;
         }
 
-        public void createCube(double size, Point3D bias, Color color, Material material)
+        public override void translate(double x, double y, double z)
+        {
+            Center += new Point3D(x, y, z);
+        }
+    }
+
+    class Cube : Figure
+    {
+        public Cube(double size, Point3D bias, Color color, Material material)
         {
             type = ElemType.Cube;
             List<Point3D> allPoints = new List<Point3D>()
@@ -286,25 +300,15 @@ namespace Individual2
             findNormals();
         }
 
-        public void createSphere(Point3D center, double radius, Color color, Material material)
+        private Face createCubeFace(Point3D p1, Point3D p2, Point3D p3, Point3D p4)
         {
-            type = ElemType.Sphere;
-            Radius = radius;
-            Faces = new List<Face>() { new Face(new List<Point3D>() { new Point3D(center) }) };
-            Center = center;
-            Color = color;
-            Material = material;
+            return new Face(new List<Point3D>() { new Point3D(p1), new Point3D(p2), new Point3D(p3), new Point3D(p4) });
         }
 
         public void findNormals()
         {
             foreach (var face in Faces)
                 face.findNormal(Center);
-        }
-
-        private Face createCubeFace(Point3D p1, Point3D p2, Point3D p3, Point3D p4)
-        {
-            return new Face(new List<Point3D>() { new Point3D(p1), new Point3D(p2), new Point3D(p3), new Point3D(p4) });
         }
 
         private Point3D findCenter()
@@ -315,7 +319,35 @@ namespace Individual2
             return new Point3D(x, y, z);
         }
 
-        public void translate(double x, double y, double z)
+        public override void translate(double x, double y, double z)
+        {
+            foreach (var face in Faces)
+                face.translate(x, y, z);
+            Center = findCenter();
+        }
+    }
+
+    class Plain : Figure
+    {
+        public Plain(List<Face> faces, Point3D normal, Color color, Material material)
+        {
+            Faces = faces;
+            Faces[0].normal = normal;
+            findCenter();
+            type = ElemType.Plain;
+            Color = color;
+            Material = material;
+        }
+
+        private Point3D findCenter()
+        {
+            var x = Faces.Average(face => face.center.X);
+            var y = Faces.Average(face => face.center.Y);
+            var z = Faces.Average(face => face.center.Z);
+            return new Point3D(x, y, z);
+        }
+
+        public override void translate(double x, double y, double z)
         {
             foreach (var face in Faces)
                 face.translate(x, y, z);
