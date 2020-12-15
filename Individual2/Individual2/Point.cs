@@ -64,5 +64,15 @@ namespace Individual2
         {
             return new Point3D(lst[0], lst[1], lst[2]);
         }
+
+        public double[,] ToMatrixRow()
+        {
+            return new double[,]{ { X, Y, Z} };
+        }
+
+        public double[,] ToMatrixCol()
+        {
+            return new double[,] { { X }, { Y }, { Z } };
+        }
     }
 }

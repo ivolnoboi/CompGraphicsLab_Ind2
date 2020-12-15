@@ -47,16 +47,7 @@ namespace Individual2
             zconst = points.All(point => point.Z == points[0].Z);
         }
 
-        public Face(Face face)
-        {
-            points = face.points.ToList();
-            center = new Point3D(face.center);
-            normal = new Point3D(face.normal);
-            xconst = face.xconst;
-            yconst = face.yconst;
-            zconst = face.zconst;
-        }
-        private bool pointBelongs(Point2D e1, Point2D e2, Point2D pt)
+        private bool PointBelongs(Point2D e1, Point2D e2, Point2D pt)
         {
             var a = e1.Y - e2.Y;
             var b = e2.X - e1.X;
@@ -64,13 +55,13 @@ namespace Individual2
             if (Math.Abs(a * pt.X + b * pt.Y + c) > eps)
                 return false;
 
-            return lEq(Math.Min(e1.X, e2.X), pt.X)
-                    && lEq(pt.X, Math.Max(e1.X, e2.X))
-                    && lEq(Math.Min(e1.Y, e2.Y), pt.Y)
-                    && lEq(pt.Y, Math.Max(e1.Y, e2.Y));
+            return lessEqual(Math.Min(e1.X, e2.X), pt.X)
+                    && lessEqual(pt.X, Math.Max(e1.X, e2.X))
+                    && lessEqual(Math.Min(e1.Y, e2.Y), pt.Y)
+                    && lessEqual(pt.Y, Math.Max(e1.Y, e2.Y));
         }
 
-        private bool isCrossed(Point2D first1, Point2D first2, Point2D second1, Point2D second2)
+        private bool IsCrossed(Point2D first1, Point2D first2, Point2D second1, Point2D second2)
         {
             var a1 = first1.Y - first2.Y;
             var b1 = first2.X - first1.X;
@@ -88,18 +79,18 @@ namespace Individual2
                 x = 0.0;
             if (equal(y, 0.0))
                 y = 0.0;
-            var toFirst = lEq(Math.Min(first1.X, first2.X), x)
-                    && lEq(x, Math.Max(first1.X, first2.X))
-                    && lEq(Math.Min(first1.Y, first2.Y), y)
-                    && lEq(y, Math.Max(first1.Y, first2.Y));
-            var toSecond = lEq(Math.Min(second1.X, second2.X), x)
-                    && lEq(x, Math.Max(second1.X, second2.X))
-                    && lEq(Math.Min(second1.Y, second2.Y), y)
-                    && lEq(y, Math.Max(second1.Y, second2.Y));
+            var toFirst = lessEqual(Math.Min(first1.X, first2.X), x)
+                    && lessEqual(x, Math.Max(first1.X, first2.X))
+                    && lessEqual(Math.Min(first1.Y, first2.Y), y)
+                    && lessEqual(y, Math.Max(first1.Y, first2.Y));
+            var toSecond = lessEqual(Math.Min(second1.X, second2.X), x)
+                    && lessEqual(x, Math.Max(second1.X, second2.X))
+                    && lessEqual(Math.Min(second1.Y, second2.Y), y)
+                    && lessEqual(y, Math.Max(second1.Y, second2.Y));
             return toFirst && toSecond;
         }
 
-        public bool inside(Point3D p)
+        public bool Inside(Point3D p)
         {
             var count = 0;
             if (zconst)
@@ -110,15 +101,15 @@ namespace Individual2
                 {
                     var tmp1 = new Point2D(points[i - 1].X, points[i - 1].Y);
                     var tmp2 = new Point2D(points[i % points.Count].X, points[i % points.Count].Y);
-                    if (pointBelongs(tmp1, tmp2, pt))
+                    if (PointBelongs(tmp1, tmp2, pt))
                         return true;
                     if (equal(tmp1.Y, tmp2.Y))
                         continue;
                     if (equal(pt.Y, Math.Min(tmp1.Y, tmp2.Y)))
                         continue;
-                    if (equal(pt.Y, Math.Max(tmp1.Y, tmp2.Y)) && less(pt.X, Math.Min(tmp1.X, tmp2.X)))
+                    if (equal(pt.Y, Math.Max(tmp1.Y, tmp2.Y)) && pt.X < Math.Min(tmp1.X, tmp2.X))
                         count++;
-                    else if (isCrossed(tmp1, tmp2, pt, ray))
+                    else if (IsCrossed(tmp1, tmp2, pt, ray))
                         count++;
                 }
                 return count % 2 != 0;
@@ -131,15 +122,15 @@ namespace Individual2
                 {
                     var tmp1 = new Point2D(points[i - 1].X, points[i - 1].Z);
                     var tmp2 = new Point2D(points[i % points.Count].X, points[i % points.Count].Z);
-                    if (pointBelongs(tmp1, tmp2, pt))
+                    if (PointBelongs(tmp1, tmp2, pt))
                         return true;
                     if (equal(tmp1.Y, tmp2.Y))
                         continue;
                     if (equal(pt.Y, Math.Min(tmp1.Y, tmp2.Y)))
                         continue;
-                    if (equal(pt.Y, Math.Max(tmp1.Y, tmp2.Y)) && less(pt.X, Math.Min(tmp1.X, tmp2.X)))
+                    if (equal(pt.Y, Math.Max(tmp1.Y, tmp2.Y)) && pt.X < Math.Min(tmp1.X, tmp2.X))
                         count++;
-                    else if (isCrossed(tmp1, tmp2, pt, ray))
+                    else if (IsCrossed(tmp1, tmp2, pt, ray))
                         count++;
                 }
                 return count % 2 != 0;
@@ -152,15 +143,15 @@ namespace Individual2
                 {
                     var tmp1 = new Point2D(points[i - 1].Y, points[i - 1].Z);
                     var tmp2 = new Point2D(points[i % points.Count].Y, points[i % points.Count].Z);
-                    if (pointBelongs(tmp1, tmp2, pt))
+                    if (PointBelongs(tmp1, tmp2, pt))
                         return true;
                     if (equal(tmp1.Y, tmp2.Y))
                         continue;
                     if (equal(pt.Y, Math.Min(tmp1.Y, tmp2.Y)))
                         continue;
-                    if (equal(pt.Y, Math.Max(tmp1.Y, tmp2.Y)) && less(pt.X, Math.Min(tmp1.X, tmp2.X)))
+                    if (equal(pt.Y, Math.Max(tmp1.Y, tmp2.Y)) && pt.X < Math.Min(tmp1.X, tmp2.X))
                         count++;
-                    else if (isCrossed(tmp1, tmp2, pt, ray))
+                    else if (IsCrossed(tmp1, tmp2, pt, ray))
                         count++;
                 }
                 return count % 2 != 0;
@@ -168,74 +159,69 @@ namespace Individual2
             return false;
         }
 
-        public void findNormal(Point3D polyhedronCenter)
+        // Векторное произведение векторов
+        private static Point3D CrossProduct(Point3D vec1, Point3D vec2)
         {
-            var Q = points[1];
-            var R = points[2];
-            var S = points[0];
-            var QR = new List<double>() { R.X - Q.X, R.Y - Q.Y, R.Z - Q.Z };
-            var QS = new List<double>() { S.X - Q.X, S.Y - Q.Y, S.Z - Q.Z };
-            var result = new List<double>
-            {
-                QR[1] * QS[2] - QR[2] * QS[1],
-                -(QR[0] * QS[2] - QR[2] * QS[0]),
-                QR[0] * QS[1] - QR[1] * QS[0]
-            };
+            double x = vec1.Y * vec2.Z - vec1.Z * vec2.Y;
+            double y = vec1.Z * vec2.X - vec1.X * vec2.Z;
+            double z = vec1.X * vec2.Y - vec1.Y * vec2.X;
+            return new Point3D(x, y, z);
+        }
 
-            var CQ = new List<double> { Q.X - polyhedronCenter.X, Q.Y - polyhedronCenter.Y, Q.Z - polyhedronCenter.Z };
-            if (mulMatrix(result, 1, 3, CQ, 3, 1)[0] > eps)
-            {
-                result[0] = result[0] * -1;
-                result[1] = result[1] * -1;
-                result[2] = result[2] * -1;
-            }
-            normal = Point3D.ToPoint(result);
+        public void findNormal(Point3D centerFigure)
+        {
+            Point3D Q = points[1];
+            Point3D R = points[2];
+            Point3D S = points[0];
+            Point3D QR = R - Q;
+            Point3D QS = S - Q;
+            Point3D result = CrossProduct(QR, QS);
+
+            Point3D CQ = Q - centerFigure;
+
+            if (MultMatrix(result.ToMatrixRow(), CQ.ToMatrixCol())[0, 0] > eps)
+                result = -result;
+            normal = result;
         }
 
         public void translate(double x, double y, double z)
         {
             foreach (var point in points)
             {
-                var t = new List<double>() {
-                    1.0, 0.0, 0.0, 0.0,
-                    0.0, 1.0, 0.0, 0.0,
-                    0.0, 0.0, 1.0, 0.0,
-                    x, y, z, 1.0
-                };
-                var xyz = new List<double>() { point.X, point.Y, point.Z, 1.0 };
-                var c = mulMatrix(xyz, 1, 4, t, 4, 4);
-                point.X = c[0];
-                point.Y = c[1];
-                point.Z = c[2];
+                double[,] translateMatrix = { { 1.0, 0.0, 0.0, 0.0 },
+                                              { 0.0, 1.0, 0.0, 0.0 },
+                                              { 0.0, 0.0, 1.0, 0.0 },
+                                              {   x,   y,   z, 1.0 } };
+
+                double [,] xyz = { { point.X, point.Y, point.Z, 1.0 } };
+                double[,] newPoint = MultMatrix(xyz, translateMatrix);
+                point.X = newPoint[0, 0];
+                point.Y = newPoint[0, 1];
+                point.Z = newPoint[0, 2];
             }
             center = findCenter();
         }
-        private List<double> mulMatrix(List<double> matr1, int m1, int n1, List<double> matr2, int m2, int n2)
+
+        //перемножение матриц
+        static public double[,] MultMatrix(double[,] m1, double[,] m2)
         {
-            if (n1 != m2)
-                return new List<double>();
-            var c = new List<double>();
-            for (int i = 0; i < m1 * n2; i++)
-                c.Add(0);
-            for (int i = 0; i < m1; i++)
-                for (int j = 0; j < n2; j++)
-                    for (int r = 0; r < n1; r++)
-                        c[i * m1 + j] += matr1[i * m1 + r] * matr2[r * n2 + j];
-            return c;
+            double[,] res = new double[m1.GetLength(0), m2.GetLength(1)];
+
+            for (int i = 0; i < m1.GetLength(0); ++i)
+                for (int j = 0; j < m2.GetLength(1); ++j)
+                    for (int k = 0; k < m2.GetLength(0); k++)
+                    {
+                        res[i, j] += m1[i, k] * m2[k, j];
+                    }
+
+            return res;
         }
+
         private Point3D findCenter()
         {
-            double x = 0.0, y = 0.0, z = 0.0;
-            foreach (var point in points)
-            {
-                x += point.X;
-                y += point.Y;
-                z += point.Z;
-            }
-            x /= points.Count;
-            y /= points.Count;
-            z /= points.Count;
-
+            double x = points.Average(point => point.X);
+            double y = points.Average(point => point.Y);
+            double z = points.Average(point => point.Z);
             return new Point3D(x, y, z);
         }
         double eps = 0.000001;
@@ -244,14 +230,9 @@ namespace Individual2
             return Math.Abs(d1 - d2) < eps;
         }
 
-        private bool less(double d1, double d2)
+        private bool lessEqual(double d1, double d2)
         {
-            return d1 < d2 && Math.Abs(d1 - d2) >= eps;
-        }
-
-        private bool lEq(double d1, double d2)
-        {
-            return less(d1, d2) || equal(d1, d2);
+            return d1 < d2 || equal(d1, d2);
         }
     }
 
@@ -278,24 +259,24 @@ namespace Individual2
         public void createCube(double size = 50.0)
         {
             type = ElemType.Cube;
-            var front = makeFace(
+            List<Point3D> allPoints = new List<Point3D>()
+            {
                 new Point3D(-size, size, size),
                 new Point3D(size, size, size),
                 new Point3D(size, -size, size),
-                new Point3D(-size, -size, size)
-            );
-
-            var back = makeFace(
+                new Point3D(-size, -size, size),
                 new Point3D(-size, size, -size),
                 new Point3D(-size, -size, -size),
                 new Point3D(size, -size, -size),
                 new Point3D(size, size, -size)
-            );
+            };
 
-            var down = makeFace(front.points[2], back.points[2], back.points[1], front.points[3]);
-            var top = makeFace(back.points[0], back.points[3], front.points[1], front.points[0]);
-            var left = makeFace(back.points[0], front.points[0], front.points[3], back.points[1]);
-            var right = makeFace(back.points[3], back.points[2], front.points[2], front.points[1]);
+            var front = createCubeFace(allPoints[0], allPoints[1], allPoints[2], allPoints[3]);
+            var back = createCubeFace(allPoints[4], allPoints[5], allPoints[6], allPoints[7]);
+            var down = createCubeFace(allPoints[2], allPoints[6], allPoints[5], allPoints[3]);
+            var top = createCubeFace(allPoints[4], allPoints[7], allPoints[1], allPoints[0]);
+            var left = createCubeFace(allPoints[4], allPoints[0], allPoints[3], allPoints[5]);
+            var right = createCubeFace(allPoints[7], allPoints[6], allPoints[2], allPoints[1]);
 
             Faces = new List<Face>() { front, back, down, top, left, right };
             Center = findCenter();
@@ -315,26 +296,16 @@ namespace Individual2
                 face.findNormal(Center);
         }
 
-        private Face makeFace(Point3D p1, Point3D p2, Point3D p3, Point3D p4)
+        private Face createCubeFace(Point3D p1, Point3D p2, Point3D p3, Point3D p4)
         {
             return new Face(new List<Point3D>() { new Point3D(p1), new Point3D(p2), new Point3D(p3), new Point3D(p4) });
         }
 
         private Point3D findCenter()
         {
-            var x = 0.0;
-            var y = 0.0;
-            var z = 0.0;
-            foreach (var face in Faces)
-            {
-                x += face.center.X;
-                y += face.center.Y;
-                z += face.center.Z;
-            }
-            x /= Faces.Count;
-            y /= Faces.Count;
-            z /= Faces.Count;
-
+            var x = Faces.Average(face => face.center.X);
+            var y = Faces.Average(face => face.center.Y);
+            var z = Faces.Average(face => face.center.Z);
             return new Point3D(x, y, z);
         }
 

@@ -308,7 +308,7 @@ namespace Individual2
                 if (d < 0)
                     continue;
                 var point = camera + d * D;
-                if (t > d && face.inside(point))
+                if (t > d && face.Inside(point))
                 {
                     t = d;
                     norm = -normal;
