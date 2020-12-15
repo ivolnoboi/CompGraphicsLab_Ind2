@@ -245,8 +245,6 @@ namespace Individual2
         public Material Material = new Material();
         public List<Face> Faces = new List<Face>();
 
-        public Figure() { }
-
         public virtual void translate(double x, double y, double z) { }
     }
 

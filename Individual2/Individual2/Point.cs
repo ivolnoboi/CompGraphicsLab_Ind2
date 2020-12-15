@@ -55,16 +55,6 @@ namespace Individual2
             return new Point3D(-point.X, -point.Y, -point.Z);
         }
 
-        public List<double> ToList()
-        {
-            return new List<double>() { X, Y, Z };
-        }
-
-        static public Point3D ToPoint(List<double> lst)
-        {
-            return new Point3D(lst[0], lst[1], lst[2]);
-        }
-
         public double[,] ToMatrixRow()
         {
             return new double[,] { { X, Y, Z } };
