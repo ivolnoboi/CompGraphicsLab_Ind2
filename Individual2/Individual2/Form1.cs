@@ -40,23 +40,17 @@ namespace Individual2
             scene.Add(wall);
         }
 
-        private void addCube(double size, Point3D point, Color color, Material material)
+        private void addCube(double size, Point3D bias, Color color, Material material)
         {
             var cube = new Figure(new List<Face>());
-            cube.createCube(size);
-            cube.translate(point.X, point.Y, point.Z);
-            cube.Color = color;
-            cube.Material = material;
-            cube.findNormals();
+            cube.createCube(size, bias, color, material);
             scene.Add(cube);
         }
 
         private void addSphere(Point3D point, double radius, Color color, Material material)
         {
             var sphere = new Figure(new List<Face>());
-            sphere.createSphere(point, radius);
-            sphere.Color = color;
-            sphere.Material = material;
+            sphere.createSphere(point, radius, color, material);
             scene.Add(sphere);
         }
 
@@ -66,49 +60,54 @@ namespace Individual2
             new Point3D(-10.0, -1.0, -10.0),
             new Point3D(-10.0, 10.0, -10.0),
             new Point3D(10.0, 10.0, -10.0),
-            new Point3D(10.0, -1.0, -10.0)
-        };
+            new Point3D(10.0, -1.0, -10.0)};
+
             if (back.Checked)
                 addWall(points, new Point3D(0.0, 0.0, -1.0), Color.Yellow, mirror); // back
             else addWall(points, new Point3D(0.0, 0.0, -1.0), Color.Yellow, matte);
+            
             points = new List<Point3D>() {
             new Point3D(-10.0, -1.0, 10.0),
             new Point3D(-10.0, 10.0, 10.0),
             new Point3D(10.0, 10.0, 10.0),
-            new Point3D(10.0, -1.0, 10.0)
-        };
+            new Point3D(10.0, -1.0, 10.0)};
+
             if (front.Checked)
                 addWall(points, new Point3D(0.0, 0.0, 1.0), Color.Khaki, mirror); // front
             else addWall(points, new Point3D(0.0, 0.0, 1.0), Color.Khaki, matte);
+            
             points = new List<Point3D>() {
             new Point3D(-10.0, -1.0, -10.0),
             new Point3D(-10.0, -1.0, 10.0),
             new Point3D(10.0, -1.0, 10.0),
-            new Point3D(10.0, -1.0, -10.0)
-        };
+            new Point3D(10.0, -1.0, -10.0)};
+
             addWall(points, new Point3D(0.0, -1.0, 0.0), Color.LightSteelBlue, matte); // пол
+            
             points = new List<Point3D>() {
             new Point3D(-10.0, 10.0, -10.0),
             new Point3D(-10.0, 10.0, 10.0),
             new Point3D(10.0, 10.0, 10.0),
-            new Point3D(10.0, 10.0, -10.0)
-        };
+            new Point3D(10.0, 10.0, -10.0)};
+
             addWall(points, new Point3D(0.0, 1.0, 0.0), Color.LightGoldenrodYellow, matte); // потолок
+            
             points = new List<Point3D>() {
             new Point3D(-10.0, -1.0, -10.0),
             new Point3D(-10.0, 10.0, -10.0),
             new Point3D(-10.0, 10.0, 10.0),
-            new Point3D(-10.0, -1.0, 10.0)
-        };
+            new Point3D(-10.0, -1.0, 10.0)};
+            
             if (left.Checked)
                 addWall(points, new Point3D(-1.0, 0.0, 0.0), Color.BlueViolet, mirror); // left
             else addWall(points, new Point3D(-1.0, 0.0, 0.0), Color.BlueViolet, matte);
+            
             points = new List<Point3D>() {
             new Point3D(10.0, -1.0, -10.0),
             new Point3D(10.0, 10.0, -10.0),
             new Point3D(10.0, 10.0, 10.0),
-            new Point3D(10.0, -1.0, 10.0)
-        };
+            new Point3D(10.0, -1.0, 10.0)};
+
             if (right.Checked)
                 addWall(points, new Point3D(1.0, 0.0, 0.0), Color.Pink, mirror); // right
             else addWall(points, new Point3D(1.0, 0.0, 0.0), Color.Pink, matte);

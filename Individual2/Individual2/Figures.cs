@@ -193,7 +193,7 @@ namespace Individual2
                                               { 0.0, 0.0, 1.0, 0.0 },
                                               {   x,   y,   z, 1.0 } };
 
-                double [,] xyz = { { point.X, point.Y, point.Z, 1.0 } };
+                double[,] xyz = { { point.X, point.Y, point.Z, 1.0 } };
                 double[,] newPoint = MultMatrix(xyz, translateMatrix);
                 point.X = newPoint[0, 0];
                 point.Y = newPoint[0, 1];
@@ -256,7 +256,7 @@ namespace Individual2
             }
         }
 
-        public void createCube(double size = 50.0)
+        public void createCube(double size, Point3D bias, Color color, Material material)
         {
             type = ElemType.Cube;
             List<Point3D> allPoints = new List<Point3D>()
@@ -280,14 +280,20 @@ namespace Individual2
 
             Faces = new List<Face>() { front, back, down, top, left, right };
             Center = findCenter();
+            translate(bias.X, bias.Y, bias.Z);
+            Color = color;
+            Material = material;
+            findNormals();
         }
 
-        public void createSphere(Point3D center, double radius)
+        public void createSphere(Point3D center, double radius, Color color, Material material)
         {
             type = ElemType.Sphere;
             Radius = radius;
             Faces = new List<Face>() { new Face(new List<Point3D>() { new Point3D(center) }) };
             Center = center;
+            Color = color;
+            Material = material;
         }
 
         public void findNormals()

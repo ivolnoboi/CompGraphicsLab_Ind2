@@ -67,7 +67,7 @@ namespace Individual2
 
         public double[,] ToMatrixRow()
         {
-            return new double[,]{ { X, Y, Z} };
+            return new double[,] { { X, Y, Z } };
         }
 
         public double[,] ToMatrixCol()

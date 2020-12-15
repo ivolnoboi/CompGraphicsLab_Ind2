@@ -181,14 +181,14 @@ namespace Individual2
 
             double light = computeLighting(point, normal, -D, closest_elem.Material.Specular);
             Color localColor = colorProd(closest_elem.Color, light);
-            
+
             if (recurseDepth <= 0 || intensityRay <= eps)
                 return localColor;
 
             Point3D reflectedRay = ReflectRay(-D, normal);
             Color reflectionColor = TraceRay(point, reflectedRay, eps, double.MaxValue, intensityRay * closest_elem.Material.Reflective, recurseDepth - 1);
             Color reflected = ProdSumColor(localColor, reflectionColor, closest_elem.Material.Reflective);
-            
+
             if (closest_elem.Material.Transparent <= 0)
                 return colorProd(reflected, intensityRay);
 
